@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.gumeng.usercenter.mapper.CommentEmailMapper">
+
+    <resultMap id="BaseResultMap" type="com.gumeng.usercenter.model.domain.CommentEmail">
+            <id property="id" column="id" jdbcType="BIGINT"/>
+            <result property="avatar" column="avatar" jdbcType="VARCHAR"/>
+            <result property="subject" column="subject" jdbcType="VARCHAR"/>
+            <result property="email" column="email" jdbcType="VARCHAR"/>
+            <result property="parentNick" column="parentNick" jdbcType="VARCHAR"/>
+            <result property="parentComment" column="parentComment" jdbcType="VARCHAR"/>
+            <result property="nick" column="nick" jdbcType="VARCHAR"/>
+            <result property="comment" column="comment" jdbcType="VARCHAR"/>
+            <result property="postName" column="postName" jdbcType="VARCHAR"/>
+            <result property="postUrl" column="postUrl" jdbcType="VARCHAR"/>
+            <result property="failNum" column="failNum" jdbcType="INTEGER"/>
+            <result property="createTime" column="createTime" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,avatar,subject,email,
+        parentNick,parentComment,nick,
+        comment,postName,postUrl,
+        failNum,createTime
+    </sql>
+</mapper>

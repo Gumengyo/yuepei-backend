@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.gumeng.usercenter.mapper.ChatMapper">
+
+    <resultMap id="BaseResultMap" type="com.gumeng.usercenter.model.domain.Chat">
+        <id property="id" column="id" jdbcType="BIGINT"/>
+        <result property="fromId" column="fromId" jdbcType="BIGINT"/>
+        <result property="toId" column="toId" jdbcType="BIGINT"/>
+        <result property="text" column="text" jdbcType="VARCHAR"/>
+        <result property="chatType" column="chatType" jdbcType="TINYINT"/>
+        <result property="createTime" column="createTime" jdbcType="TIMESTAMP"/>
+        <result property="teamId" column="teamId" jdbcType="BIGINT"/>
+    </resultMap>
+
+    <resultMap id="ChatResultMap" type="com.gumeng.usercenter.model.vo.ChatMessageVO">
+        <!-- 一级数据映射 -->
+        <result column="c_fromId" property="fromId"/>
+        <result column="c_toId" property="toId"/>
+        <result column="c_text" property="text"/>
+        <result column="chatType" property="chatType"/>
+        <result column="c_createTime" property="createTime"/>
+        <!--一对一映射-->
+        <association property="fromUser" javaType="com.gumeng.usercenter.model.vo.ChatUserVO">
+            <result column="fromUserId" property="id"/>
+            <result column="fromUsername" property="username"/>
+            <result column="fromAvatarUrl" property="avatarUrl"/>
+        </association>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id
+        ,fromId,toId,text,
+        chatType,createTime,,teamId
+    </sql>
+    <select id="getPrivateChat" parameterType="long" resultMap="ChatResultMap">
+        select c.fromId as c_fromId,
+               c.toId as c_toId,
+               c.text as c_text,
+               c.chatType as c_chatType,
+               c.createTime as c_createTime,
+               c.teamId as c_teamId,
+               u1.id  as fromUserId,
+               u1.username  as fromUsername,
+               u1.avatarUrl as fromAvatarUrl
+        from chat c
+                 inner join user u1 on c.fromId = u1.id
+        where (c.fromId = #{fromId} and c.toId = #{toId}
+            or c.fromId = #{toId} and c.toId = #{fromId})
+          and c.chatType = 1
+        order by c.createTime;
+    </select>
+    <select id="getChatMessage" parameterType="long" resultMap="ChatResultMap">
+        select c.fromId as c_fromId,
+               c.toId as c_toId,
+               c.text as c_text,
+               c.chatType as c_chatType,
+               c.createTime as c_createTime,
+               c.teamId as c_teamId,
+               u.id as fromUserId,
+               u.username  as fromUsername,
+               u.avatarUrl as fromAvatarUrl
+        from chat c
+                 inner join user u on c.fromId = u.id
+        where c.toId = #{userId}
+          and c.chatType = 1
+          and c.createTime = (select MAX(createTime)
+                              from chat
+                              WHERE fromId = c.fromId)
+        order by c.createTime desc;
+    </select>
+    <select id="getTeamChat" parameterType="long" resultMap="ChatResultMap">
+        select c.fromId as c_fromId,
+               c.toId as c_toId,
+               c.text as c_text,
+               c.chatType as c_chatType,
+               c.createTime as c_createTime,
+               c.teamId as c_teamId,
+               u1.id  as fromUserId,
+               u1.username  as fromUsername,
+               u1.avatarUrl as fromAvatarUrl
+        from chat c
+                 inner join user u1 on c.fromId = u1.id
+        where c.teamId = #{teamId} and c.chatType = 2
+        order by c.createTime;
+    </select>
+    <select id="getOpenChat" parameterType="long" resultMap="ChatResultMap">
+        select c.fromId as c_fromId,
+               c.toId as c_toId,
+               c.text as c_text,
+               c.chatType as c_chatType,
+               c.createTime as c_createTime,
+               u1.id  as fromUserId,
+               u1.username  as fromUsername,
+               u1.avatarUrl as fromAvatarUrl
+        from chat c
+                 inner join user u1 on c.fromId = u1.id
+        where c.chatType = 3
+        order by c.createTime;
+    </select>
+</mapper>

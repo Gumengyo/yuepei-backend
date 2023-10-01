@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.gumeng.usercenter.mapper.BlogCommentsMapper">
+
+    <resultMap id="BaseResultMap" type="com.gumeng.usercenter.model.domain.BlogComments">
+        <id property="id" column="id" jdbcType="BIGINT"/>
+        <result property="userId" column="userId" jdbcType="BIGINT"/>
+        <result property="blogId" column="blogId" jdbcType="BIGINT"/>
+        <result property="parentId" column="parentId" jdbcType="BIGINT"/>
+        <result property="answerId" column="answerId" jdbcType="BIGINT"/>
+        <result property="content" column="content" jdbcType="VARCHAR"/>
+        <result property="contentImg" column="contentImg" jdbcType="VARCHAR"/>
+        <result property="liked" column="liked" jdbcType="INTEGER"/>
+        <result property="status" column="status" jdbcType="TINYINT"/>
+        <result property="createTime" column="createTime" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id
+        ,userId,blogId,
+        parentId,answerId,content,
+        contentImg,liked,status,
+        createTime,updateTime
+    </sql>
+
+    <resultMap id="commentsResultMap" type="com.gumeng.usercenter.model.dto.Comments">
+        <!-- 一级数据映射 -->
+        <id column="one_id" property="id"/>
+        <result column="one_uid" property="uid"/>
+        <result column="one_bloId" property="blogId"/>
+        <result column="one_content" property="content"/>
+        <result column="one_likes" property="likes"/>
+        <result column="one_contentImg" property="contentImg"/>
+        <result column="one_createTime" property="createTime"/>
+        <!--一对一映射-->
+        <association property="user" javaType="com.gumeng.usercenter.model.vo.CommentUserVO">
+            <result column="u1_username" property="username"/>
+            <result column="u1_avatar" property="avatar"/>
+            <result column="u1_homeLink" property="homeLink"/>
+        </association>
+
+        <!-- 一级中包含多个二级数据 -->
+        <collection property="replyList" ofType="com.gumeng.usercenter.model.dto.Comments">
+            <!-- 一级数据映射 -->
+            <id column="two_id" property="id"/>
+            <result column="two_uid" property="uid"/>
+            <result column="two_content" property="content"/>
+            <result column="two_likes" property="likes"/>
+            <result column="two_contentImg" property="contentImg"/>
+            <result column="two_createTime" property="createTime"/>
+            <!--一对一映射-->
+            <association property="user" javaType="com.gumeng.usercenter.model.vo.CommentUserVO">
+                <result column="u2_username" property="username"/>
+                <result column="u2_avatar" property="avatar"/>
+                <result column="u2_homeLink" property="homeLink"/>
+            </association>
+        </collection>
+    </resultMap>
+
+    <resultMap id="myComentsResultMap" type="com.gumeng.usercenter.model.vo.BlogCommentsVO">
+        <!--文章-->
+        <association property="blog" javaType="com.gumeng.usercenter.model.vo.BlogVO">
+            <result column="b_id" property="id"/>
+            <result column="b_title" property="title"/>
+            <result column="b_images" property="images"/>
+            <result column="b_content" property="content"/>
+            <association property="author" javaType="com.gumeng.usercenter.model.vo.UserVO">
+                <result column="u1_username" property="username"/>
+            </association>
+        </association>
+        <!--一评论-->
+        <association property="comment" javaType="com.gumeng.usercenter.model.dto.Comments">
+            <result column="bc_id" property="id"/>
+            <result column="bc_uid" property="uid"/>
+            <result column="bc_content" property="content"/>
+            <result column="bc_likes" property="likes"/>
+            <result column="bc_createTime" property="createTime"/>
+            <association property="user" javaType="com.gumeng.usercenter.model.vo.CommentUserVO">
+                <result column="u2_username" property="username"/>
+                <result column="u2_avatar" property="avatar"/>
+                <result column="u2_homeLink" property="homeLink"/>
+            </association>
+        </association>
+    </resultMap>
+
+    <select id="getCommentsByBlogId" parameterType="long" resultMap="commentsResultMap">
+        select one.id                            one_id,
+               one.userId                        one_uid,
+               one.content                       one_content,
+               one.liked                         one_likes,
+               one.contentImg                    one_contentImg,
+               one.createTime                    one_createTime,
+               u1.username                       u1_username,
+               u1.avatarUrl                      u1_avatar,
+               CONCAT("/user/detail?id=", u1.id) u1_homeLink,
+               two.id                            two_id,
+               two.parentId                      two_parentId,
+               two.userId                        two_uid,
+               two.content                       two_content,
+               two.liked                         two_likes,
+               two.contentImg                    two_contentImg,
+               two.createTime                    two_createTime,
+               u2.username                       u2_username,
+               u2.avatarUrl                      u2_avatar,
+               concat("/user/detail?id=", u2.id) u2_homeLink
+        from blog_comments one
+                 left join user u1 on u1.id = one.userId
+                 left join blog_comments two on two.parentId = one.id
+                 left join user u2 on u2.id = two.userId
+        where one.parentId is null
+          and one.blogId = #{blogId};
+    </select>
+
+    <select id="getCommentsById" parameterType="long" resultMap="commentsResultMap">
+        select one.id                            one_id,
+               one.userId                        one_uid,
+               one.content                       one_content,
+               one.liked                         one_likes,
+               one.contentImg                    one_contentImg,
+               one.createTime                    one_createTime,
+               one.blogId                        one_bloId,
+               u1.username                       u1_username,
+               u1.avatarUrl                      u1_avatar,
+               CONCAT("/user/detail?id=", u1.id) u1_homeLink,
+               two.id                            two_id,
+               two.parentId                      two_parentId,
+               two.userId                        two_uid,
+               two.content                       two_content,
+               two.liked                         two_likes,
+               two.contentImg                    two_contentImg,
+               two.createTime                    two_createTime,
+               u2.username                       u2_username,
+               u2.avatarUrl                      u2_avatar,
+               concat("/user/detail?id=", u2.id) u2_homeLink
+        from blog_comments one
+                 left join user u1 on u1.id = one.userId
+                 left join blog_comments two on two.parentId = one.id
+                 left join user u2 on u2.id = two.userId
+        where one.id = #{id};
+    </select>
+    <!-- 上线时需改路径 -->
+    <select id="getComentEmailInfo" parameterType="long" resultType="com.gumeng.usercenter.model.dto.CommentEmailInfo">
+        SELECT
+            u1.avatarUrl avatar,
+            u1.email email,
+            u1.username parentNick,
+            one.content parentComment,
+
+            u2.username nick,
+            two.content comment,
+            blog.title postName,
+                concat("https://yp.jishuqin.cn/blog?id=", blog.id) postUrl
+        FROM
+            blog_comments one
+                LEFT JOIN USER u1 ON u1.id = one.userId
+                LEFT JOIN blog_comments two ON two.parentId = one.id
+                LEFT JOIN USER u2 ON u2.id = two.userId
+                LEFT JOIN blog on one.blogId = blog.id
+        WHERE
+            two.id = #{id};
+    </select>
+
+    <select id="getMyComments" parameterType="long" resultMap="myComentsResultMap">
+        SELECT
+            b.id b_id,
+            b.title b_title,
+            b.images b_images,
+            b.content b_content,
+            u1.username u1_username,
+            bc.id bc_id,
+            bc.userId bc_uid,
+            bc.content bc_content,
+            bc.liked bc_likes,
+            bc.createTime bc_createTime,
+
+            u2.username u2_username,
+            u2.avatarUrl u2_avatar,
+            concat("/user/detail?id=", u2.id) u2_homeLink
+        FROM
+            blog b
+                INNER JOIN blog_comments bc ON b.id = bc.blogId
+                INNER JOIN user u1 ON bc.userId = u1.id
+                INNER JOIN user u2 ON bc.userId = u2.id
+        WHERE
+            bc.answerId = #{userId} and bc.userId != bc.answerId ORDER BY bc.createTime DESC
+    </select>
+
+</mapper>

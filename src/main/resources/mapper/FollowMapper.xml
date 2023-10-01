@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.gumeng.usercenter.mapper.FollowMapper">
+
+    <resultMap id="BaseResultMap" type="com.gumeng.usercenter.model.domain.Follow">
+            <id property="id" column="id" jdbcType="BIGINT"/>
+            <result property="userId" column="user_id" jdbcType="BIGINT"/>
+            <result property="followUserId" column="follow_user_id" jdbcType="BIGINT"/>
+            <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,user_id,follow_user_id,
+        create_time
+    </sql>
+    <select id="getMyFollow" parameterType="long" resultType="com.gumeng.usercenter.model.vo.UserVO">
+        select *
+        from user
+        where id in (select followUserId from follow where userId = #{userId});
+    </select>
+
+    <select id="getMyFans" parameterType="long" resultType="com.gumeng.usercenter.model.vo.UserVO">
+        select *
+        from user
+        where id in (select userId from follow where followUserId = #{userId});
+    </select>
+
+</mapper>
